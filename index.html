@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fly Green</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      background-image: url('https://www.traveldailynews.com/wp-content/uploads/2023/01/85611.png');
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      text-align: center;
+    }
+
+    .logo {
+      display: block;
+      margin: 0 auto 20px;
+    }
+
+    .calculator-box {
+      background-color: limegreen;
+      padding: 20px;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    label, select, button, p {
+      display: block;
+      margin: 10px 0;
+      width: 100%;
+    }
+
+    select {
+      padding: 10px;
+      font-size: 1em;
+    }
+
+    button {
+      padding: 10px;
+      background-color: #ffffff;
+      border: none;
+      cursor: pointer;
+      font-size: 1em;
+    }
+
+    button:hover {
+      background-color: #dddddd;
+    }
+
+    #results {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="https://www.f6s.com/content-resource/profiles/3530426_th1.jpg" alt="Logo" class="logo">
+    <div class="calculator-box">
+      <h1>Fly Green with Msitu Africa</h1>
+      <h2>Offset your Carbon Footprint per Flight</h2>
+      <h3>Panda Ndege uki Panda Miti</h3>
+      <label for="departure-airport">Departure Airport:</label>
+      <select id="departure-airport"></select>
+
+      <label for="arrival-airport">Arrival Airport:</label>
+      <select id="arrival-airport"></select>
+
+      <button onclick="calculateCO2()">Calculate</button>
+
+      <div id="results">
+        <p>Distance: <span id="distance"></span> km</p>
+        <p>CO2 Emissions: <span id="co2"></span> kg</p>
+        <p>Offset Cost: <span id="cost-ksh"></span> KSH | <span id="cost-usd"></span> USD</p>
+        <p>Number of Trees Planted: <span id="trees"></span></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="scripts.js"></script>
+  <script>
+    const airports = [
+      // Kenyan Airports
+      { "name": "Jomo Kenyatta International Airport", "code": "NBO", "location": { "latitude": -1.319167, "longitude": 36.9275 } },
+      { "name": "Moi International Airport", "code": "MBA", "location": { "latitude": -4.034833, "longitude": 39.59425 } },
+      { "name": "Eldoret International Airport", "code": "EDL", "location": { "latitude": 0.404458, "longitude": 35.23889 } },
+      { "name": "Kisumu International Airport", "code": "KIS", "location": { "latitude": -0.086139, "longitude": 34.728892 } },
+      { "name": "Wilson Airport", "code": "WIL", "location": { "latitude": -1.321667, "longitude": 36.814722 } },
+      { "name": "Malindi Airport", "code": "MYD", "location": { "latitude": -3.229306, "longitude": 40.101665 } },
+      { "name": "Ukunda Airport", "code": "UKA", "location": { "latitude": -4.296944, "longitude": 39.571389 } },
+      { "name": "Lokichogio Airport", "code": "LKG", "location": { "latitude": 4.204117, "longitude": 34.348179 } },
+      { "name": "Nanyuki Airport", "code": "NYK", "location": { "latitude": 0.0625, "longitude": 37.041946 } },
+      { "name": "Isiolo Airport", "code": "ISO", "location": { "latitude": 0.338889, "longitude": 37.591111 } },
+      { "name": "Lodwar Airport", "code": "LOK", "location": { "latitude": 3.121953, "longitude": 35.608696 } },
+      { "name": "Wajir Airport", "code": "WJR", "location": { "latitude": 1.733239, "longitude": 40.091944 } },
+    ];
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const departureAirportSelect = document.getElementById('departure-airport');
+      const arrivalAirportSelect = document.getElementById('arrival-airport');
+    
+      airports.forEach(airport => {
+        const option = document.createElement('option');
+        option.value = JSON.stringify(airport.location);
+        option.textContent = `${airport.name} (${airport.code})`;
+        departureAirportSelect.appendChild(option.cloneNode(true));
+        arrivalAirportSelect.appendChild(option.cloneNode(true));
+      });
+    });
+
+    function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+      const R = 6371; // Radius of the earth in km
+      const dLat = deg2rad(lat2 - lat1);
+      const dLon = deg2rad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const distance = R * c; // Distance in km
+      return distance;
+    }
+
+    function deg2rad(deg) {
+      return deg * (Math.PI / 180);
+    }
+
+    function calculateCO2() {
+      const departureAirportSelect = document.getElementById('departure-airport');
+      const arrivalAirportSelect = document.getElementById('arrival-airport');
+      
+      const departureLocation = JSON.parse(departureAirportSelect.value);
+      const arrivalLocation = JSON.parse(arrivalAirportSelect.value);
+    
+      const distance = getDistanceFromLatLonInKm(
+        departureLocation.latitude, departureLocation.longitude,
+        arrivalLocation.latitude, arrivalLocation.longitude
+      );
+    
+      const co2 = distance * 0.8; // 1 kg per km traveled
+      const costKsh = co2 * 0.67;
+      const costUsd = costKsh / 109.85; // Example conversion rate
+    
+      document.getElementById('distance').textContent = distance.toFixed(2);
+      document.getElementById('co2').textContent = co2.toFixed(2);
+      document.getElementById('cost-ksh').textContent = costKsh.toFixed(2);
+      document.getElementById('cost-usd').textContent = costUsd.toFixed(2);
+
+      const trees = Math.floor(costKsh / 50);
+      document.getElementById('trees').textContent = trees;
+    }
+  </script>
+</body>
+</html>
